@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
+import sys
 from PIL import Image, ImageDraw, ImageFont
 from flow_chart import FlowChart
 from input_parser import InputParser
 
-inst_path = "src/inst_7.txt"
-algo_path = "src/algo_7.txt"
 font_path = "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf"
 font_size = 70
 h_font_size = 50
@@ -110,6 +109,11 @@ class Page:
 
 
 def main():
+    if len(sys.argv) != 3:
+        print("Usage: ./algorithm.py algorithm_filepath instructions_filepath")
+        sys.exit(64)
+    algo_path = sys.argv[1]
+    inst_path = sys.argv[2]
     page = Page(algo_path, "RGB", sheet, color="white")
     page.beautify()
     page.add_flow_chart(inst_path, sheet[0]//2, sheet[1])
