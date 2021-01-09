@@ -22,13 +22,14 @@ class FlowChart:
     arl = 30
     ara = (math.pi/180)*45
 
-    blocks = []
+    blocks = None
 
     def __init__(self, *args, **kwargs):
         self.im = Image.new(*args, **kwargs)
         self.row = 50
         self.center = args[1][0] // 2
         self.drawer = ImageDraw.Draw(self.im)
+        self.blocks = []
 
     def distance(self, x1, y1, x2, y2):
         return math.sqrt((x2-x1) ** 2 + (y2-y1) ** 2)
