@@ -60,55 +60,94 @@ class FlowChart:
             self.drawer.line([*pt_right, *pt2], fill="black")
             self.drawer.line([*pt_left, *pt2], fill="black")
         return *pts, (ahx, ahy)
+
+    def brushes_edge(self, pt_a, pt_b, corner):
+        if ((pt_b[1] == pt_a[1] and corner in [0, 2])
+            or (pt_b[0] == pt_a[0] and corner in [1, 3])):
+             return corner
     
-    def get_pts(self, spt, ept, spt_corner):
-        block_spacing = self.blk_size[1]*10 + self.spacing
-        if ept[1] < spt[1] or abs(ept[1] - spt[1]) > block_spacing:
-            pr = spt[0]+-1*(spt_corner-2)*(self.blk_size[0]*10)
-            pts = [(pr, spt[1]), (pr, ept[1])]
-            return spt, *pts, ept
-        elif spt[0] == ept[0]:
-            return spt, ept
-        elif spt[0] < ept[0]:
-            mp = ept[0], spt[1]
-            return spt, mp, ept
+    def get_pts(self, block_a, block_b):
+
+        if isinstance(block_a, Block):
+            spt_corner, ept_corner = self.get_corner(block_a, block_b)
+            spt = block_a.corners[spt_corner]
+            ept = block_b.corners[ept_corner]
         else:
-            mp = ept[0], spt[1]
-            return spt, mp, ept
+            spt, ept = block_a
+            spt_corner = block_b
+
+        block_spacing = self.blk_size[1]*10 + self.spacing*2
+        pts = [spt]
+        mp_index = -1
+        if spt[0] != ept[0] and spt[1] != ept[1]:
+            pts.append((ept[0], spt[1]))
+            mp_index = 1
+        pts.append(ept)
+        for (j, pt_a, pt_b, corner) in [(1, pts[0], pts[1], spt_corner),
+                                        (-1, pts[-2], pts[-1], ept_corner)]:
+            c = self.brushes_edge(pt_a, pt_b, corner)
+            if c:
+                if c % 2:
+                    pts.insert(j, (pt_a[0]-self.spacing*(c-2), pt_b[1]))
+                else:
+                    mp_index += 1
+                    pts.insert(j, (pt_a[0], pt_b[1]+self.spacing*(c-1)))
+        
+        if mp_index not in [0, -1]:
+            pts[mp_index] = (pts[mp_index+1][0], pts[mp_index-1][1])
+        return pts
+
+        # if ept[1] < spt[1] or abs(ept[1] - spt[1]) > block_spacing:
+        #     pr = spt[0]+-1*(spt_corner-2)*(self.blk_size[0]*10)
+        #     pts = [(pr, spt[1]), (pr, ept[1])]
+        #     return spt, *pts, ept
+        # elif spt[0] == ept[0]:
+        #     return spt, ept
+        # elif spt[0] < ept[0]:
+        #     mp = ept[0], spt[1]
+        #     return spt, mp, ept
+        # else:
+        #     mp = ept[0], spt[1]
+        #     return spt, mp, ept
         
     def get_corner(self, block_a, block_b):
         
         if block_a.center_factor < block_b.center_factor:
-            return [block_a.corners[1], block_b.corners[0], 1]
+            block_a.ccorners.append(1)
+            block_b.ccorners.append(0)
 
         elif block_a.center_factor > block_b.center_factor:
-            return [block_a.corners[3], block_b.corners[0], 3]
+            block_a.ccorners.append(3)
+            block_b.ccorners.append(0)
 
         elif block_a.center_factor == block_b.center_factor:
             if block_a.corners[0] > block_b.corners[2]:
-                return [block_a.corners[3], block_b.corners[3], 3]
+                block_a.ccorners.append(3)
+                block_b.ccorners.append(3)
             else:
-                return [block_a.corners[2], block_b.corners[0], 2]
+                block_a.ccorners.append(2)
+                block_b.ccorners.append(0)
+        return [block_a.ccorners[-1], block_b.ccorners[-1]]
         
 
     def connect(self, block_a, block_b, text):
         if isinstance(block_b, Block):
             
             # Connect 2 Blocks
-            pts = self.get_pts(*self.get_corner(block_a, block_b))
+            pts = self.get_pts(block_a, block_b)
             self.arrow(*pts)
         else:
             
             # Connect a block and a line
             bf_id, bt_id = block_b.split(".", 2)
             af_blk, at_blk = self.blocks[int(bf_id)], self.blocks[int(bt_id)]
-            pts = self.get_pts(*self.get_corner(af_blk, at_blk))
+            pts = self.get_pts(af_blk, at_blk)
             ept = ((pts[-1][0] + pts[-2][0])//2, (pts[-1][1] + pts[-2][1])//2)
             if block_a.corners[0][0] > ept[0]:
                 corner = 3
             else:
                 corner = 1
-            pts = self.get_pts(block_a.corners[corner], ept, corner)
+            pts = self.get_pts((block_a.corners[corner], ept), corner)
             self.arrow(*pts)
         
         if not text:

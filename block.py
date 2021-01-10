@@ -5,6 +5,7 @@ class Block:
     font_path = "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf"
     supported_blocks = ["process", "decision", "io", "start",
                         "end", "stop", "connector", "loop"]
+    ccorners = None
     def __init__(self, im, block, width, height,
                  center_factor, row, text, font_size):
         self.drawer = im.drawer
@@ -17,6 +18,7 @@ class Block:
         self.center_factor = center_factor
         self.center, self.row = center, row
         self.block = block
+        self.ccorners = []
 
         draw = False
         breaker = 4

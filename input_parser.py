@@ -42,7 +42,7 @@ class InputParser:
 
             flow_chart.row = block.corners[2][1] + flow_chart.spacing
             br = self.get_brs(conns, j)
-            c = (self.center * 2) / (len(br)+1)
+            c = (center * 2) / (len(br)+1)
             for k, conn in enumerate(br):
                 if isinstance(conn[0], int):
                     pos[conn[0]] = (c * (k + 1), flow_chart.row)
