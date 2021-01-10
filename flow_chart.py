@@ -74,13 +74,16 @@ class FlowChart:
             ept = block_b.corners[ept_corner]
         else:
             spt, ept = block_a
-            spt_corner = block_b
+            spt_corner, ept_corner = block_b
 
         block_spacing = self.blk_size[1]*10 + self.spacing*2
         pts = [spt]
         mp_index = -1
         if spt[0] != ept[0] and spt[1] != ept[1]:
-            pts.append((ept[0], spt[1]))
+            if spt_corner % 2:
+                pts.append((ept[0], spt[1]))
+            else:
+                pts.append((spt[0], ept[1]))
             mp_index = 1
         pts.append(ept)
         for (j, pt_a, pt_b, corner) in [(1, pts[0], pts[1], spt_corner),
@@ -94,7 +97,11 @@ class FlowChart:
                     pts.insert(j, (pt_a[0], pt_b[1]+self.spacing*(c-1)))
         
         if mp_index not in [0, -1]:
-            pts[mp_index] = (pts[mp_index+1][0], pts[mp_index-1][1])
+            if spt_corner % 2:
+                pts[mp_index] = (pts[mp_index+1][0], pts[mp_index-1][1])
+            else:
+                pts[mp_index] = (pts[mp_index-1][0], pts[mp_index+1][1])
+                
         return pts
 
     def add_prefered(self, preference, min_corners, block):
@@ -132,13 +139,9 @@ class FlowChart:
             if block_a.corners[0][1] > block_b.corners[2][1]:
                 self.add_prefered([3, 2, 1, 0], min_ba_corners, block_a)
                 self.add_prefered([3, 2, 1, 0], min_bb_corners, block_b)
-                # block_a.ccorners.append(3)
-                # block_b.ccorners.append(3)
             else:
                 self.add_prefered([2, 1, 3, 0], min_ba_corners, block_a)
                 self.add_prefered([0, 1, 3, 2], min_bb_corners, block_b)
-                # block_a.ccorners.append(2)
-                # block_b.ccorners.append(0)
         else:
             print("UNABLE TO FIND CONNECTION")
         return [block_a.ccorners[-1], block_b.ccorners[-1]]
@@ -182,7 +185,6 @@ class FlowChart:
         else:
             self.drawer.text((pos[0]-w//2, pos[1]-h-self.blk_size[1]),
                              text, font=font, fill="black")
-            
             
 
     def draw(self, block, text, center=1):
