@@ -9,7 +9,6 @@ font_path = "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf"
 font_size = 70
 h_font_size = 50
 sheet = (2480, 3508)
-sheet = (4480, 3508)
 margin = 50
 
 
