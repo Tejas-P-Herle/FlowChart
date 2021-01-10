@@ -35,7 +35,8 @@ class InputParser:
         for j, (block_type, text, conns) in enumerate(self.read_blocks()):
             conns = self.parse_connections(conns, j)
             if j in pos:
-                center, flow_chart.row = pos[j]
+                centers, rows = pos[j]
+                center, flow_chart.row = sum(centers)/len(centers), max(rows)
             else:
                 center = self.center
             block = flow_chart.draw(block_type, text, center)
@@ -44,8 +45,10 @@ class InputParser:
             br = self.get_brs(conns, j)
             c = (center * 2) / (len(br)+1)
             for k, conn in enumerate(br):
-                if isinstance(conn[0], int):
-                    pos[conn[0]] = (c * (k + 1), flow_chart.row)
+                if conn[0] not in pos:
+                    pos[conn[0]] = [[], []]
+                pos[conn[0]][0].append(c * (k + 1))
+                pos[conn[0]][1].append(flow_chart.row)
             all_connections.append(conns)
 
         for i, connections in enumerate(all_connections):
