@@ -87,9 +87,16 @@ class FlowChart:
         mp_index = -1
         if spt[0] != ept[0] and spt[1] != ept[1]:
             if spt_corner % 2:
-                pts.append((spt[0], ept[1]))
+                if spt[0] < ept[0]:
+                    pts.append((spt[0], ept[1]))
+                else:
+                    pts.append((ept[0], spt[1]))
             else:
-                pts.append((ept[0], spt[1]))
+                if spt[1] < ept[1]:
+                    pts.append((spt[0], ept[1]))
+                else:
+                    pts.append((ept[0], spt[1]))
+                    
             mp_index = 1
         pts.append(ept)
         for (j, pt_a, pt_b, corner) in [(1, pts[0], pts[1], spt_corner),
@@ -111,9 +118,16 @@ class FlowChart:
                     mp_index += 1
         if mp_index not in [0, -1]:
             if spt_corner % 2:
-                pts[mp_index] = (pts[mp_index-1][0], pts[mp_index+1][1])
+                if spt[0] < ept[0] or spt_corner == 3:
+                    pts[mp_index] = (pts[mp_index+1][0], pts[mp_index-1][1])
+                else:
+                    pts[mp_index] = (pts[mp_index-1][0], pts[mp_index+1][1])
             else:
-                pts[mp_index] = (pts[mp_index+1][0], pts[mp_index-1][1])
+                if spt[1] > ept[1] or spt_corner == 2:
+                    pts[mp_index] = (pts[mp_index+1][0], pts[mp_index-1][1])
+                else:
+                    pts[mp_index] = (pts[mp_index-1][0], pts[mp_index+1][1])
+                    
         return pts
 
     def add_prefered(self, preference, min_corners, block, add=True):
