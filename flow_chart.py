@@ -97,36 +97,50 @@ class FlowChart:
             pts[mp_index] = (pts[mp_index+1][0], pts[mp_index-1][1])
         return pts
 
-        # if ept[1] < spt[1] or abs(ept[1] - spt[1]) > block_spacing:
-        #     pr = spt[0]+-1*(spt_corner-2)*(self.blk_size[0]*10)
-        #     pts = [(pr, spt[1]), (pr, ept[1])]
-        #     return spt, *pts, ept
-        # elif spt[0] == ept[0]:
-        #     return spt, ept
-        # elif spt[0] < ept[0]:
-        #     mp = ept[0], spt[1]
-        #     return spt, mp, ept
-        # else:
-        #     mp = ept[0], spt[1]
-        #     return spt, mp, ept
+    def add_prefered(self, preference, min_corners, block):
+        for c in preference:
+            if c in min_corners:
+                return block.ccorners.append(c)
+        return block.ccorners.append(preference[0])
         
     def get_corner(self, block_a, block_b):
         
+        ba_corners = {i:block_a.ccorners.count(i) for i in range(4)}
+        ba_min = min(ba_corners.values())
+        min_ba_corners = [c for c, v in ba_corners.items() if v == ba_min]
+        bb_corners = {i:block_b.ccorners.count(i) for i in range(4)}
+        bb_min = min(bb_corners.values())
+        min_bb_corners = [c for c, v in bb_corners.items() if v == bb_min]
+
         if block_a.center_factor < block_b.center_factor:
-            block_a.ccorners.append(1)
-            block_b.ccorners.append(0)
+            if block_a.block == "decision":
+                self.add_prefered([1, 2, 3], min_ba_corners, block_a)
+                self.add_prefered([0, 3, 1], min_bb_corners, block_b)
+            else:
+                self.add_prefered([2, 1, 3, 0], min_ba_corners, block_a)
+                self.add_prefered([3, 0, 1, 2], min_bb_corners, block_b)
 
         elif block_a.center_factor > block_b.center_factor:
-            block_a.ccorners.append(3)
-            block_b.ccorners.append(0)
+            if block_a.block == "decision":
+                self.add_prefered([3, 2, 1], min_ba_corners, block_a)
+                self.add_prefered([0, 1, 3], min_bb_corners, block_b)
+            else:
+                self.add_prefered([2, 3, 0, 1], min_ba_corners, block_a)
+                self.add_prefered([0, 1, 3, 2], min_bb_corners, block_b)
 
         elif block_a.center_factor == block_b.center_factor:
-            if block_a.corners[0] > block_b.corners[2]:
-                block_a.ccorners.append(3)
-                block_b.ccorners.append(3)
+            if block_a.corners[0][1] > block_b.corners[2][1]:
+                self.add_prefered([3, 2, 1, 0], min_ba_corners, block_a)
+                self.add_prefered([3, 2, 1, 0], min_bb_corners, block_b)
+                # block_a.ccorners.append(3)
+                # block_b.ccorners.append(3)
             else:
-                block_a.ccorners.append(2)
-                block_b.ccorners.append(0)
+                self.add_prefered([2, 1, 3, 0], min_ba_corners, block_a)
+                self.add_prefered([0, 1, 3, 2], min_bb_corners, block_b)
+                # block_a.ccorners.append(2)
+                # block_b.ccorners.append(0)
+        else:
+            print("UNABLE TO FIND CONNECTION")
         return [block_a.ccorners[-1], block_b.ccorners[-1]]
         
 
